@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoanTrack — Loan Utilization Tracking Portal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface2: #f1f3f5;
+    --border: #e3e6ea;
+    --border2: #cbd0d8;
+    --text: #111827;
+    --text2: #4b5563;
+    --text3: #9ca3af;
+    --blue: #1a56db;
+    --blue-light: #e8f0fe;
+    --blue-mid: #3b82f6;
+    --green: #057a55;
+    --green-light: #def7ec;
+    --amber: #92400e;
+    --amber-light: #fef3c7;
+    --red: #9b1c1c;
+    --red-light: #fde8e8;
+    --purple: #4338ca;
+    --purple-light: #ede9fe;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px;
+  }
+  .logo-name { font-size: 16px; font-weight: 600; color: var(--text); font-family: 'Inter', sans-serif; }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-left: 44px; }
+
+  .role-switcher { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  .role-switcher label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 6px; }
+  .role-btns { display: flex; flex-direction: column; gap: 3px; }
+  .role-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 10px; border-radius: var(--radius-sm);
+    font-size: 12px; cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent; color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; text-align: left;
+  }
+  .role-btn:hover { background: var(--surface2); }
+  .role-btn.active { background: var(--blue-light); color: var(--blue); border-color: #bfdbfe; font-weight: 500; }
+  .role-btn .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-officer { background: var(--blue); }
+  .dot-beneficiary { background: var(--green); }
+  .dot-admin { background: var(--purple); }
+
+  .nav { padding: 0.75rem 0.75rem; flex: 1; }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; padding: 0.75rem 0.5rem 0.3rem; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text2); cursor: pointer;
+    transition: all 0.12s; border: none; background: transparent;
+    width: 100%; font-family: 'DM Sans', sans-serif; text-align: left;
+  }
+  .nav-item i { font-size: 17px; flex-shrink: 0; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--blue-light); color: var(--blue); font-weight: 500; }
+  .nav-item .badge-count {
+    margin-left: auto; font-size: 10px; font-weight: 600;
+    background: var(--red-light); color: var(--red);
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  /* ── Main ── */
+  .main { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); font-family: 'Inter', sans-serif; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .role-pill {
+    font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px;
+  }
+  .pill-officer { background: var(--blue-light); color: var(--blue); }
+  .pill-beneficiary { background: var(--green-light); color: var(--green); }
+  .pill-admin { background: var(--purple-light); color: var(--purple); }
+  .icon-btn {
+    width: 32px; height: 32px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text2); cursor: pointer; font-size: 16px;
+  }
+  .icon-btn:hover { background: var(--surface2); }
+
+  .content { padding: 1.5rem; flex: 1; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Stats ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.125rem;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .stat-val { font-size: 26px; font-weight: 600; color: var(--text); font-family: 'Inter', sans-serif; line-height: 1; }
+  .stat-sub { font-size: 11px; margin-top: 5px; display: flex; align-items: center; gap: 3px; }
+  .up { color: var(--green); }
+  .warn { color: #d97706; }
+  .danger { color: var(--red); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.125rem 1.25rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem;
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'Inter', sans-serif; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left; padding: 7px 10px; font-size: 10px; font-weight: 600;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  td { padding: 9px 10px; color: var(--text2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafafa; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600; padding: 3px 8px;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .badge-pending { background: var(--amber-light); color: var(--amber); }
+  .badge-approved { background: var(--green-light); color: var(--green); }
+  .badge-flagged { background: var(--red-light); color: var(--red); }
+  .badge-submitted { background: var(--blue-light); color: var(--blue); }
+  .badge-draft { background: var(--surface2); color: var(--text2); }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; padding: 6px 12px;
+    border-radius: var(--radius-sm); cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    transition: all 0.12s; font-weight: 500;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: #1447b4; }
+  .btn-primary:hover { background: #1447b4; }
+  .btn-sm { font-size: 11px; padding: 4px 9px; }
+  .btn-danger { background: var(--red-light); color: var(--red); border-color: #fca5a5; }
+
+  /* ── Form ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; }
+  input, select, textarea {
+    padding: 8px 10px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text);
+    font-family: 'DM Sans', sans-serif; transition: border 0.12s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* ── Alerts ── */
+  .alert { display: flex; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 10px; }
+  .alert i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .alert-warn { background: var(--amber-light); color: var(--amber); border: 1px solid #fcd34d; }
+  .alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #93c5fd; }
+  .alert-success { background: var(--green-light); color: var(--green); border: 1px solid #6ee7b7; }
+  .alert-danger { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
+  .alert-text { font-size: 12px; }
+  .alert-text strong { font-weight: 600; display: block; margin-bottom: 1px; }
+
+  /* ── Progress ── */
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .progress-row:last-child { border-bottom: none; }
+  .progress-label { font-size: 12px; color: var(--text2); min-width: 160px; }
+  .progress-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.6s ease; }
+  .progress-pct { font-size: 11px; color: var(--text3); min-width: 34px; text-align: right; font-weight: 500; }
+
+  /* ── Timeline ── */
+  .timeline { padding-left: 1rem; border-left: 2px solid var(--border); }
+  .tl-item { position: relative; padding: 0 0 1.25rem 1rem; }
+  .tl-item:before {
+    content: ''; position: absolute; left: -0.575rem; top: 5px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--blue); border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1.5px var(--blue);
+  }
+  .tl-item.done:before { background: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
+  .tl-step { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tl-title { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 1px; }
+  .tl-desc { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+  /* ── Flag items ── */
+  .flag-list { display: flex; flex-direction: column; gap: 0; }
+  .flag-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .flag-item:last-child { border-bottom: none; }
+  .flag-icon-wrap {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .fwarn { background: var(--amber-light); }
+  .fwarn i { color: #d97706; font-size: 17px; }
+  .fok { background: var(--green-light); }
+  .fok i { color: var(--green); font-size: 17px; }
+  .fdanger { background: var(--red-light); }
+  .fdanger i { color: var(--red); font-size: 17px; }
+  .flag-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .flag-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* ── Mobile frame ── */
+  .mobile-wrap { display: flex; gap: 1.5rem; align-items: flex-start; }
+  .mobile-frame {
+    width: 290px; flex-shrink: 0;
+    border: 2px solid #1a1a2e; border-radius: 24px;
+    overflow: hidden; background: var(--surface);
+    box-shadow: var(--shadow-md);
+  }
+  .mobile-status {
+    background: #0f3460; padding: 9px 16px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .m-time { color: #fff; font-size: 11px; font-weight: 600; }
+  .m-icons { display: flex; gap: 5px; }
+  .m-icons i { color: rgba(255,255,255,0.9); font-size: 13px; }
+  .mobile-header { background: #1a56db; padding: 12px 16px 16px; }
+  .m-h { color: #fff; font-size: 15px; font-weight: 600; font-family: 'Inter', sans-serif; }
+  .m-sub { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; }
+  .mobile-body { padding: 12px; }
+  .m-card {
+    background: var(--surface2); border-radius: 10px; padding: 10px 12px;
+    margin-bottom: 10px; border: 1px solid var(--border);
+  }
+  .m-card-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .m-card-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .geo-row {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--green-light); border-radius: 6px;
+    padding: 5px 8px; margin-bottom: 8px;
+  }
+  .geo-row i { color: var(--green); font-size: 13px; }
+  .geo-row span { font-size: 10px; color: var(--green); font-weight: 500; }
+  .upload-zone {
+    border: 1.5px dashed var(--border2); border-radius: 10px;
+    padding: 16px 12px; text-align: center; margin: 8px 0;
+    cursor: pointer; background: var(--surface2);
+  }
+  .upload-zone:hover { background: var(--blue-light); border-color: var(--blue-mid); }
+  .upload-zone i { font-size: 28px; color: var(--text3); display: block; margin-bottom: 5px; }
+  .upload-zone p { font-size: 11px; color: var(--text2); }
+  .upload-zone small { font-size: 10px; color: var(--text3); }
+  .ai-box {
+    background: var(--blue-light); border-left: 3px solid var(--blue);
+    border-radius: 0 8px 8px 0; padding: 8px 10px; margin: 8px 0;
+  }
+  .ai-label { font-size: 10px; font-weight: 600; color: var(--blue); margin-bottom: 3px; }
+  .ai-val { font-size: 12px; color: #1e3a5f; font-weight: 500; }
+  .conf-track { height: 4px; background: #bfdbfe; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+  .conf-fill { height: 100%; background: var(--blue); border-radius: 2px; }
+  .conf-pct { font-size: 10px; color: var(--blue); margin-top: 3px; }
+  .offline-notice {
+    background: var(--amber-light); border: 1px solid #fcd34d; border-radius: 7px;
+    padding: 6px 10px; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  }
+  .offline-notice i { color: #d97706; font-size: 14px; }
+  .offline-notice span { font-size: 10px; color: var(--amber); }
+  .m-btn {
+    width: 100%; padding: 10px; border-radius: 10px; border: none;
+    background: var(--blue); color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 8px;
+    transition: background 0.12s;
+  }
+  .m-btn:hover { background: #1447b4; }
+  .m-btn-outline {
+    width: 100%; padding: 8px; border-radius: 10px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text2); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; margin-top: 5px;
+  }
+
+  /* ── Scheme compliance summary ── */
+  .kpi-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .kpi-row:last-child { border-bottom: none; }
+  .kpi-label { font-size: 12px; color: var(--text2); }
+  .kpi-val { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .mobile-wrap { flex-direction: column; }
+    .mobile-frame { width: 100%; }
+  }
+  @media (max-width: 600px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo-icon"><i class="ti ti-building-bank"></i></div>
+        <span class="logo-name">LoanTrack</span>
+      </div>
+      <div class="logo-sub">Scheme Utilization Portal</div>
+    </div>
+
+    <div class="role-switcher">
+      <label>View as</label>
+      <div class="role-btns">
+        <button class="role-btn active" id="rbtn-officer" onclick="switchRole('officer')">
+          <span class="dot dot-officer"></span> State Officer
+        </button>
+        <button class="role-btn" id="rbtn-beneficiary" onclick="switchRole('beneficiary')">
+          <span class="dot dot-beneficiary"></span> Beneficiary (Mobile)
+        </button>
+        <button class="role-btn" id="rbtn-admin" onclick="switchRole('admin')">
+          <span class="dot dot-admin"></span> Admin / Bank
+        </button>
+      </div>
+    </div>
+
+    <nav class="nav" id="sidebar-nav"></nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title" id="page-title">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span class="role-pill pill-officer" id="role-pill">State Officer</span>
+        <button class="icon-btn" title="Notifications"><i class="ti ti-bell"></i></button>
+        <button class="icon-btn" title="Profile"><i class="ti ti-user-circle"></i></button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total beneficiaries</div>
+            <div class="stat-val">4,812</div>
+            <div class="stat-sub up"><i class="ti ti-arrow-up" style="font-size:11px"></i> 142 added this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Submissions pending</div>
+            <div class="stat-val">318</div>
+            <div class="stat-sub danger"><i class="ti ti-clock" style="font-size:11px"></i> 47 overdue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">AI-flagged for review</div>
+            <div class="stat-val">29</div>
+            <div class="stat-sub warn"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Needs attention</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Verified this week</div>
+            <div class="stat-val">203</div>
+            <div class="stat-sub up"><i class="ti ti-check" style="font-size:11px"></i> 94% approval rate</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent submissions</span>
+              <button class="btn btn-sm" onclick="showPage('page-submissions')"><i class="ti ti-arrow-right"></i> View all</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Beneficiary</th><th>Scheme</th><th>Asset</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Meena R.</td><td>PM-SVANidhi</td><td>Sewing machine</td><td><span class="badge badge-pending">Pending</span></td></tr>
+                  <tr><td>Arjun K.</td><td>MUDRA Shishu</td><td>Livestock</td><td><span class="badge badge-flagged">Flagged</span></td></tr>
+                  <tr><td>Lakshmi D.</td><td>NRLM</td><td>Dairy equipment</td><td><span class="badge badge-approved">Approved</span></td></tr>
+                  <tr><td>Ravi S.</td><td>PM-SVANidhi</td><td>Cart &amp; goods</td><td><span class="badge badge-submitted">Submitted</span></td></tr>
+                  <tr><td>Priya M.</td><td>MUDRA Kishor</td><td>Weaving loom</td><td><span class="badge badge-approved">Approved</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">AI detection alerts</span></div>
+            <div class="flag-list">
+              <div class="flag-item">
+                <div class="flag-icon-wrap fdanger"><i class="ti ti-map-pin-off"></i></div>
+                <div>
+                  <div class="flag-title">GPS location mismatch</div>
+                  <div class="flag-sub">Arjun K. — photo taken 14 km from declared village. Case #2847.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fwarn"><i class="ti ti-calendar-x"></i></div>
+                <div>
+                  <div class="flag-title">Timestamp anomaly</div>
+                  <div class="flag-sub">Photo metadata pre-dates disbursement by 22 days.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fok"><i class="ti ti-shield-check"></i></div>
+                <div>
+                  <div class="flag-title">Asset verified — Meena R.</div>
+                  <div class="flag-sub">Sewing machine confirmed. Confidence 94%.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fwarn"><i class="ti ti-photo-off"></i></div>
+                <div>
+                  <div class="flag-title">Image quality too low</div>
+                  <div class="flag-sub">Sunita B. — blurred image, re-upload requested.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Scheme-wise utilization</span></div>
+          <div class="progress-row">
+            <span class="progress-label">PM-SVANidhi (Street vendors)</span>
+            <div class="progress-track"><div class="progress-fill" style="width:78%"></div></div>
+            <span class="progress-pct">78%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">MUDRA Shishu</span>
+            <div class="progress-track"><div class="progress-fill" style="width:61%"></div></div>
+            <span class="progress-pct">61%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">NRLM — SHG</span>
+            <div class="progress-track"><div class="progress-fill" style="width:85%"></div></div>
+            <span class="progress-pct">85%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">MUDRA Kishor</span>
+            <div class="progress-track"><div class="progress-fill" style="width:43%"></div></div>
+            <span class="progress-pct">43%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUBMISSIONS ── -->
+      <div class="page" id="page-submissions">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All submissions</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select style="font-size:11px;padding:4px 8px;">
+                <option>All schemes</option>
+                <option>PM-SVANidhi</option>
+                <option>MUDRA Shishu</option>
+                <option>MUDRA Kishor</option>
+                <option>NRLM</option>
+              </select>
+              <select style="font-size:11px;padding:4px 8px;">
+                <option>All statuses</option>
+                <option>Pending</option>
+                <option>Flagged</option>
+                <option>Approved</option>
+                <option>Submitted</option>
+              </select>
+              <button class="btn btn-sm"><i class="ti ti-download"></i> Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Case #</th>
+                  <th>Beneficiary</th>
+                  <th>Mobile</th>
+                  <th>Scheme</th>
+                  <th>Asset declared</th>
+                  <th>Loan (₹)</th>
+                  <th>AI result</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2851</td><td>Meena R.</td><td>98XXX12345</td><td>PM-SVANidhi</td><td>Sewing machine</td><td>10,000</td>
+                  <td><span style="color:var(--green);font-size:11px;font-weight:600">✓ 94%</span></td>
+                  <td><span class="badge badge-pending">Pending</span></td>
+                  <td><button class="btn btn-sm btn-primary">Review</button></td>
+                </tr>
+                <tr>
+                  <td>2847</td><td>Arjun K.</td><td>97XXX88421</td><td>MUDRA Shishu</td><td>Livestock (goat)</td><td>50,000</td>
+                  <td><span style="color:var(--red);font-size:11px;font-weight:600">⚠ GPS fail</span></td>
+                  <td><span class="badge badge-flagged">Flagged</span></td>
+                  <td><button class="btn btn-sm btn-danger">Investigate</button></td>
+                </tr>
+                <tr>
+                  <td>2843</td><td>Lakshmi D.</td><td>94XXX55012</td><td>NRLM</td><td>Dairy equipment</td><td>75,000</td>
+                  <td><span style="color:var(--green);font-size:11px;font-weight:600">✓ 89%</span></td>
+                  <td><span class="badge badge-approved">Approved</span></td>
+                  <td><button class="btn btn-sm">View</button></td>
+                </tr>
+                <tr>
+                  <td>2839</td><td>Ravi S.</td><td>99XXX30091</td><td>PM-SVANidhi</td><td>Cart &amp; goods</td><td>10,000</td>
+                  <td><span style="color:var(--green);font-size:11px;font-weight:600">✓ 91%</span></td>
+                  <td><span class="badge badge-submitted">Submitted</span></td>
+                  <td><button class="btn btn-sm btn-primary">Review</button></td>
+                </tr>
+                <tr>
+                  <td>2834</td><td>Sunita B.</td><td>96XXX44521</td><td>MUDRA Kishor</td><td>Weaving loom</td><td>2,00,000</td>
+                  <td><span style="color:#d97706;font-size:11px;font-weight:600">⚠ Low quality</span></td>
+                  <td><span class="badge badge-draft">Re-upload</span></td>
+                  <td><button class="btn btn-sm">Request</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BENEFICIARY (MOBILE VIEW) ── -->
+      <div class="page" id="page-mobile">
+        <div class="mobile-wrap">
+          <div style="flex-shrink:0">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center">Beneficiary mobile app</div>
+            <div class="mobile-frame">
+              <div class="mobile-status">
+                <span class="m-time">9:41</span>
+                <div class="m-icons">
+                  <i class="ti ti-wifi"></i>
+                  <i class="ti ti-battery-2"></i>
+                </div>
+              </div>
+              <div class="mobile-header">
+                <div class="m-h">LoanTrack</div>
+                <div class="m-sub">Meena Rajendran · PM-SVANidhi</div>
+              </div>
+              <div class="mobile-body">
+                <div class="offline-notice">
+                  <i class="ti ti-wifi-off"></i>
+                  <span>Offline — will sync when connected</span>
+                </div>
+
+                <div class="m-card">
+                  <div class="m-card-title">Your loan</div>
+                  <div class="m-card-sub">₹10,000 · Disbursed 12 Jun 2026</div>
+                  <div class="m-card-sub">Asset: Sewing machine</div>
+                  <div style="margin-top:6px"><span class="badge badge-pending">Upload pending</span></div>
+                </div>
+
+                <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">Upload proof of purchase</div>
+
+                <div class="geo-row">
+                  <i class="ti ti-map-pin"></i>
+                  <span>Kazhakuttom, TVM · 9:41 AM, 24 Jun 2026</span>
+                </div>
+
+                <div class="upload-zone">
+                  <i class="ti ti-camera-plus"></i>
+                  <p>Tap to take photo or upload</p>
+                  <small>Auto geo-tagged &amp; time-stamped</small>
+                </div>
+
+                <div class="ai-box">
+                  <div class="ai-label"><i class="ti ti-robot" style="font-size:11px"></i> AI verification</div>
+                  <div class="ai-val">Sewing machine detected ✓</div>
+                  <div class="conf-track"><div class="conf-fill" style="width:94%"></div></div>
+                  <div class="conf-pct">Confidence: 94%</div>
+                </div>
+
+                <button class="m-btn">Submit for review</button>
+                <button class="m-btn-outline">View past submissions</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;min-width:0">
+            <div class="card">
+              <div class="card-header"><span class="card-title">Beneficiary app flow</span></div>
+              <div class="timeline">
+                <div class="tl-item done">
+                  <div class="tl-step">Step 1</div>
+                  <div class="tl-title">OTP login via mobile number</div>
+                  <div class="tl-desc">No username or password. A 6-digit OTP is sent to the registered mobile number — works for anyone, regardless of literacy.</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-step">Step 2</div>
+                  <div class="tl-title">View pre-filled loan details</div>
+                  <div class="tl-desc">Bank or agency enters data beforehand. Beneficiary sees scheme name, loan amount, disbursement date, and declared asset type — nothing to fill in.</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-step">Step 3</div>
+                  <div class="tl-title">Capture geo-tagged photo or video</div>
+                  <div class="tl-desc">App embeds GPS coordinates and timestamp into the image metadata automatically. Works offline — submission queued and synced when connectivity returns.</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-step">Step 4</div>
+                  <div class="tl-title">On-device AI validates the asset</div>
+                  <div class="tl-desc">A lightweight image classifier (MobileNet-class) checks whether the photo matches the declared asset type. Result shown to beneficiary immediately.</div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-step">Step 5</div>
+                  <div class="tl-title">Submit to officer review queue</div>
+                  <div class="tl-desc">Submission held locally if offline. Auto-uploads on next sync. Officer notified automatically.</div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-step">Step 6</div>
+                  <div class="tl-title">SMS notification on outcome</div>
+                  <div class="tl-desc">Approved, re-upload requested, or escalated — all communicated via SMS so beneficiaries without smartphones can follow up too.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADD BENEFICIARIES ── -->
+      <div class="page" id="page-register">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Register beneficiary</span></div>
+
+            <div class="alert alert-info" style="margin-bottom:1rem">
+              <i class="ti ti-info-circle"></i>
+              <div class="alert-text"><strong>Bank/agency data entry</strong>Once registered, the beneficiary can log in via OTP and see their pre-filled loan details.</div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Mobile number</label>
+                <input type="tel" placeholder="10-digit number">
+              </div>
+              <div class="form-group">
+                <label>Full name (as per Aadhaar)</label>
+                <input type="text" placeholder="e.g. Meena Rajendran">
+              </div>
+              <div class="form-group">
+                <label>Scheme</label>
+                <select>
+                  <option>PM-SVANidhi</option>
+                  <option>MUDRA Shishu</option>
+                  <option>MUDRA Kishor</option>
+                  <option>MUDRA Tarun</option>
+                  <option>NRLM — SHG</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Loan amount (₹)</label>
+                <input type="number" placeholder="e.g. 50000">
+              </div>
+              <div class="form-group">
+                <label>Disbursement date</label>
+                <input type="date">
+              </div>
+              <div class="form-group">
+                <label>Asset type</label>
+                <input type="text" placeholder="e.g. Sewing machine">
+              </div>
+              <div class="form-group">
+                <label>Bank &amp; branch</label>
+                <input type="text" placeholder="e.g. SBI, Kazhakuttom">
+              </div>
+              <div class="form-group">
+                <label>District</label>
+                <select>
+                  <option>Thiruvananthapuram</option>
+                  <option>Kollam</option>
+                  <option>Pathanamthitta</option>
+                  <option>Alappuzha</option>
+                  <option>Kottayam</option>
+                  <option>Idukki</option>
+                  <option>Ernakulam</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>Notes (optional)</label>
+                <textarea placeholder="Additional remarks about this loan or beneficiary"></textarea>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary"><i class="ti ti-user-plus"></i> Register beneficiary</button>
+              <button class="btn"><i class="ti ti-upload"></i> Import CSV</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Registered beneficiaries</span></div>
+              <table>
+                <thead><tr><th>Name</th><th>Scheme</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Meena R.</td><td>PM-SVANidhi</td><td><span class="badge badge-approved">Active</span></td></tr>
+                  <tr><td>Arjun K.</td><td>MUDRA Shishu</td><td><span class="badge badge-flagged">Flagged</span></td></tr>
+                  <tr><td>Lakshmi D.</td><td>NRLM</td><td><span class="badge badge-approved">Active</span></td></tr>
+                  <tr><td>Ravi S.</td><td>PM-SVANidhi</td><td><span class="badge badge-pending">Pending</span></td></tr>
+                  <tr><td>Sunita B.</td><td>MUDRA Kishor</td><td><span class="badge badge-draft">Draft</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><span class="card-title">Quick guide</span></div>
+              <div class="flag-list">
+                <div class="flag-item">
+                  <div class="flag-icon-wrap fok"><i class="ti ti-device-mobile"></i></div>
+                  <div>
+                    <div class="flag-title">OTP-only login</div>
+                    <div class="flag-sub">Beneficiary receives OTP on their registered mobile. No app account or password needed.</div>
+                  </div>
+                </div>
+                <div class="flag-item">
+                  <div class="flag-icon-wrap fok"><i class="ti ti-wifi-off"></i></div>
+                  <div>
+                    <div class="flag-title">Works offline</div>
+                    <div class="flag-sub">Photos captured offline are queued locally and synced automatically once connectivity is restored.</div>
+                  </div>
+                </div>
+                <div class="flag-item">
+                  <div class="flag-icon-wrap fwarn"><i class="ti ti-message"></i></div>
+                  <div>
+                    <div class="flag-title">SMS fallback</div>
+                    <div class="flag-sub">All status updates sent via SMS — works even on feature phones.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS ── -->
+      <div class="page" id="page-reports">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Fraud detection summary — June 2026</span></div>
+            <div class="flag-list">
+              <div class="flag-item">
+                <div class="flag-icon-wrap fdanger"><i class="ti ti-map-pin-off"></i></div>
+                <div>
+                  <div class="flag-title">GPS anomalies — 12 cases</div>
+                  <div class="flag-sub">Location at upload &gt;10 km from declared address.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fwarn"><i class="ti ti-clock-off"></i></div>
+                <div>
+                  <div class="flag-title">Timestamp manipulation — 4 cases</div>
+                  <div class="flag-sub">Photo EXIF data pre-dates loan disbursement.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fwarn"><i class="ti ti-photo-x"></i></div>
+                <div>
+                  <div class="flag-title">Wrong asset detected — 8 cases</div>
+                  <div class="flag-sub">AI classification does not match declared asset type.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fdanger"><i class="ti ti-copy"></i></div>
+                <div>
+                  <div class="flag-title">Duplicate image hash — 5 cases</div>
+                  <div class="flag-sub">Identical image submitted for multiple loan cases.</div>
+                </div>
+              </div>
+              <div class="flag-item">
+                <div class="flag-icon-wrap fok"><i class="ti ti-shield-check"></i></div>
+                <div>
+                  <div class="flag-title">Total verified clean — 1,033</div>
+                  <div class="flag-sub">AI auto-approved with confidence above 85%. No manual review needed.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Compliance snapshot</span></div>
+            <div class="kpi-row"><span class="kpi-label">Submissions received</span><span class="kpi-val">1,284</span></div>
+            <div class="kpi-row"><span class="kpi-label">AI auto-approved</span><span class="kpi-val" style="color:var(--green)">1,033 (80%)</span></div>
+            <div class="kpi-row"><span class="kpi-label">Officer-reviewed</span><span class="kpi-val">218 (17%)</span></div>
+            <div class="kpi-row"><span class="kpi-label">Flagged for investigation</span><span class="kpi-val" style="color:#d97706">29 (2.2%)</span></div>
+            <div class="kpi-row"><span class="kpi-label">Rejected / re-upload</span><span class="kpi-val" style="color:var(--red)">4 (0.3%)</span></div>
+            <div class="divider"></div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600">Average verification time</div>
+              <div style="font-size:24px;font-weight:700;color:var(--text);font-family:'Inter',sans-serif">1.4 days</div>
+              <div style="font-size:12px;color:var(--green);margin-top:2px"><i class="ti ti-arrow-down" style="font-size:12px"></i> Down from 18 days (field visits)</div>
+            </div>
+            <button class="btn" style="width:100%;justify-content:center"><i class="ti ti-file-analytics"></i> Download full report (PDF)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Scheme-wise utilization</span></div>
+          <div class="progress-row">
+            <span class="progress-label">NRLM — SHG</span>
+            <div class="progress-track"><div class="progress-fill" style="width:85%"></div></div>
+            <span class="progress-pct">85%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">PM-SVANidhi</span>
+            <div class="progress-track"><div class="progress-fill" style="width:78%"></div></div>
+            <span class="progress-pct">78%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">MUDRA Shishu</span>
+            <div class="progress-track"><div class="progress-fill" style="width:61%"></div></div>
+            <span class="progress-pct">61%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">MUDRA Kishor</span>
+            <div class="progress-track"><div class="progress-fill" style="width:43%"></div></div>
+            <span class="progress-pct">43%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">MUDRA Tarun</span>
+            <div class="progress-track"><div class="progress-fill" style="width:29%"></div></div>
+            <span class="progress-pct">29%</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+const roles = {
+  officer: {
+    pill: 'State Officer', pillClass: 'pill-officer',
+    nav: [
+      { id: 'dashboard', icon: 'ti-home', label: 'Dashboard' },
+      { id: 'submissions', icon: 'ti-files', label: 'Submissions', count: 29 },
+      { id: 'reports', icon: 'ti-chart-bar', label: 'Reports & analytics' },
+      { section: 'Data entry' },
+      { id: 'register', icon: 'ti-users', label: 'Add beneficiaries' },
+    ]
+  },
+  beneficiary: {
+    pill: 'Beneficiary', pillClass: 'pill-beneficiary',
+    nav: [
+      { id: 'mobile', icon: 'ti-device-mobile', label: 'My loan' },
+      { id: 'submissions', icon: 'ti-files', label: 'My submissions' },
+    ]
+  },
+  admin: {
+    pill: 'Admin / Bank', pillClass: 'pill-admin',
+    nav: [
+      { id: 'dashboard', icon: 'ti-home', label: 'Overview' },
+      { id: 'register', icon: 'ti-users', label: 'Beneficiary registry' },
+      { id: 'submissions', icon: 'ti-files', label: 'All submissions', count: 29 },
+      { id: 'reports', icon: 'ti-chart-bar', label: 'Analytics' },
+    ]
+  }
+};
+
+let currentRole = 'officer';
+let currentPage = 'dashboard';
+
+const pageTitles = {
+  dashboard: 'Dashboard',
+  submissions: 'Submissions',
+  reports: 'Reports & analytics',
+  register: 'Beneficiary registry',
+  mobile: 'My loan'
+};
+
+function switchRole(role) {
+  currentRole = role;
+  ['officer','beneficiary','admin'].forEach(r => {
+    document.getElementById('rbtn-' + r).classList.toggle('active', r === role);
+  });
+  const pill = document.getElementById('role-pill');
+  pill.textContent = roles[role].pill;
+  pill.className = 'role-pill ' + roles[role].pillClass;
+  renderNav();
+  const first = roles[role].nav.find(n => n.id);
+  if (first) showPage('page-' + first.id);
+}
+
+function renderNav() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  roles[currentRole].nav.forEach(item => {
+    if (item.section) {
+      const s = document.createElement('div');
+      s.className = 'nav-section';
+      s.textContent = item.section;
+      nav.appendChild(s);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item' + (item.id === currentPage ? ' active' : '');
+      btn.innerHTML = `<i class="ti ${item.icon}" aria-hidden="true"></i>${item.label}${item.count ? `<span class="badge-count">${item.count}</span>` : ''}`;
+      btn.onclick = () => showPage('page-' + item.id);
+      nav.appendChild(btn);
+    }
+  });
+}
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById(pageId);
+  if (pg) pg.classList.add('active');
+  currentPage = pageId.replace('page-', '');
+  document.getElementById('page-title').textContent = pageTitles[currentPage] || 'Page';
+  renderNav();
+}
+
+switchRole('officer');
+</script>
+</body>
+</html>
